@@ -1,17 +1,18 @@
 import sys
 import os
-import logging
+import log
 
 class FileHandler:
 
     def __init__(self):
         self.f = None
+        self.logger = log.Logger("file_handler")
 
     def set_file(self, filename):
-        self.f = file(self.filename)
-        logging.debug("%s is set" % (filename))
+        self.f = file(filename)
+        self.logger.message("%s is set" % filename)
 
-    def close_file(self):
+    def close(self):
         self.f.close()
 
 
@@ -55,6 +56,8 @@ class PropertiesParser:
 
 if __name__ == "__main__":
 
+    logger = log.Logger("trans_parse")
+
     dtd_parser = DTDParser()
     dtd_file_dict1 = dict()
     dtd_file_dict2 = dict()
@@ -67,18 +70,26 @@ if __name__ == "__main__":
     path2 = sys.argv[2]
 
     for root, dirs, files in os.walk(path1):
-        if os.path.isfile(root):
-            if root.endswith(".dtd"):
-                dtd_file_dict1[root] = dtd_parser.parse(root)
-            if root.endswith(".properties"):
-                properties_file_dict1[root] = properties_parser.parse(root)
+        for f in files:
+            file_path = os.path.join(root, f)
+            if os.path.isfile(file_path):
+                if file_path.endswith(".dtd"):
+                    file_path_key = file_path.split(path1)[1]
+                    dtd_file_dict1[file_path_key] = dtd_parser.parse(file_path)
+                if file_path.endswith(".properties"):
+                    file_path_key = file_path.split(path1)[1]
+                    properties_file_dict1[file_path_key] = properties_parser.parse(file_path)
 
     for root, dirs, files in os.walk(path2):
-        if os.path.isfile(root):
-            if root.endswith(".dtd"):
-                dtd_file_dict2[root] = dtd_parser.parse(root)
-            if root.endswith(".properties"):
-                properties_file_dict2[root] = properties_parser.parse(root)
+        for f in files:
+            file_path = os.path.join(root, f)
+            if os.path.isfile(file_path):
+                if file_path.endswith(".dtd"):
+                    file_path_key = file_path.split(path2)[1]
+                    dtd_file_dict2[file_path_key] = dtd_parser.parse(file_path)
+                if file_path.endswith(".properties"):
+                    file_path_key = file_path.split(path2)[1]
+                    properties_file_dict2[file_path_key] = properties_parser.parse(file_path)
 
 
     # here is the comparison
@@ -93,10 +104,10 @@ if __name__ == "__main__":
             value_diff = set(dtd_value1) - set(dtd_value2)
 
             if len(value_diff) > 0:
-                logging.debug("\t %s" % (key))
+                logger.message("\t %s" % key)
                 value_li = list(value_diff)
                 for value in value_li:
-                    logging.debug("\t %s" % (value))
+                    logger.message("\t %s" % value)
 
     properties_keys1 = properties_file_dict1.keys()
     properties_keys2 = properties_file_dict2.keys()
@@ -109,7 +120,7 @@ if __name__ == "__main__":
             value_diff = set(properties_value1) - set(properties_value2)
 
             if len(value_diff) > 0:
-                logging.debug("\t %s" % (key))
+                logger.message("\t %s" % key)
                 value_li = list(value_diff)
                 for value in value_li:
-                    logging.debug("\t %s" % (value))
+                    logger.message("\t %s" % value)
